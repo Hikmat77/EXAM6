@@ -1,13 +1,37 @@
-using System.Data;
-using Npgsql;
+using Domain.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data;
 
-public class AppDbContext
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    private string connectionString = "Host=localhost; Port=5432; Database=EXAM6; Username=postgres; Password=1234";
-    public IDbConnection Connection()
+    public DbSet<Department> Departments => Set<Department>();
+    public DbSet<Employee> Employees => Set<Employee>();
+    public DbSet<LeaveRequest> LeaveRequests => Set<LeaveRequest>();
+    public DbSet<Position> Positions => Set<Position>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        return new NpgsqlConnection(connectionString);
+        modelBuilder.Entity<Employee>()
+            .HasOne(employee => employee.Department)
+            .WithMany()
+            .HasForeignKey(employee => employee.DepartmentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Employee>()
+            .HasOne(employee => employee.Position)
+            .WithMany()
+            .HasForeignKey(employee => employee.PositionId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<LeaveRequest>()
+            .HasOne(leaveRequest => leaveRequest.Employee)
+            .WithMany()
+            .HasForeignKey(leaveRequest => leaveRequest.EmployeeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Employee>().Property(employee => employee.Salary).HasPrecision(18, 2);
+        modelBuilder.Entity<Position>().Property(position => position.MinSalary).HasPrecision(18, 2);
+        modelBuilder.Entity<Position>().Property(position => position.MaxSalary).HasPrecision(18, 2);
     }
 }

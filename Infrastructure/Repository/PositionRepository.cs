@@ -1,34 +1,27 @@
-using Dapper;
 using Domain.Interfaces;
 using Domain.Models;
 using Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repository;
 
 public class PositionRepository(AppDbContext appDbContext) : IPositionRepository
 {
-    private AppDbContext _context = appDbContext;
+    private readonly AppDbContext _context = appDbContext;
+
     public async Task<bool> AddPositionsAsync(Position positions)
     {
-        using var connection = _context.Connection();
-        var query = "insert into positions (title, minsalary, maxsalary) values (@title, @minsalary, @maxsalary)";
-        var res = await connection.ExecuteAsync(query, positions);
-        return res>0;
+        await _context.Positions.AddAsync(positions);
+        return await _context.SaveChangesAsync() > 0;
     }
 
     public async Task<Position> GetPositionAsync(int id)
     {
-        using var connection = _context.Connection();
-        var query = $"select * from positions where id = @id";
-        var position = await connection.QuerySingleAsync<Position>(query, new{id});
-        return position;
+        return await _context.Positions.AsNoTracking().SingleAsync(position => position.Id == id);
     }
 
     public async Task<List<Position>> GetPositionsAsync()
     {
-        using var connection = _context.Connection();
-        var query = $"select * from positions";
-        var position = await connection.QueryAsync<Position>(query);
-        return position.ToList();
+        return await _context.Positions.AsNoTracking().ToListAsync();
     }
 }

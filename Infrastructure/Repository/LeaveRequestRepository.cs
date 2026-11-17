@@ -1,43 +1,54 @@
-using Dapper;
 using Domain.Enums;
 using Domain.Interfaces;
 using Domain.Models;
 using Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repository;
 
 public class LeaveRequestRepository(AppDbContext appDbContext) : ILeaveRequestRepository
 {
     private readonly AppDbContext _context = appDbContext;
+
     public async Task<bool> AddLeaveRequestAsync(LeaveRequest leaveRequest)
     {
-        using var connection = _context.Connection();
-        var query = "insert into leaverequests (employeeid, leavetype, startdate, enddate, status, reason, createdat) values (@EmployeeId, @LeaveType, @StartDate, @EndDate, @Status, @Reason, @CreatedAt)";
-        var res = await connection.ExecuteAsync(query, leaveRequest);
-        return res > 0;
+        await _context.LeaveRequests.AddAsync(leaveRequest);
+        return await _context.SaveChangesAsync() > 0;
     }
 
     public async Task<List<LeaveRequest>> GetLeaveRequestsAsync(LeaveStatus? status)
     {
-        using var connection = _context.Connection();
-        var query = "select lr.*, e.* from leaverequests lr left join employees e on lr.employeeid = e.id where (@Status is null or lr.status = @Status)";
-        var leaveRequests = await connection.QueryAsync<LeaveRequest, Employee, LeaveRequest>(query,(leaveRequest, employee) =>{leaveRequest.Employee = employee;return leaveRequest;},new { Status = status },splitOn: "id");
-        return leaveRequests.ToList();
+        var query = _context.LeaveRequests
+            .AsNoTracking()
+            .Include(leaveRequest => leaveRequest.Employee)
+            .AsQueryable();
+
+        if (status.HasValue)
+        {
+            query = query.Where(leaveRequest => leaveRequest.Status == status.Value);
+        }
+
+        return await query.ToListAsync();
     }
 
     public async Task<LeaveRequest?> GetLeaveRequestAsync(int id)
     {
-        using var connection = _context.Connection();
-        var query = @"select lr.*, e.* from leaverequests lr left join employees e on lr.employeeid = e.id where lr.id = @id";
-        var leaveRequests = await connection.QueryAsync<LeaveRequest, Employee, LeaveRequest>(query,(leaveRequest, employee) =>{leaveRequest.Employee = employee;return leaveRequest;},new { id },splitOn: "id");
-        return leaveRequests.FirstOrDefault();
+        return await _context.LeaveRequests
+            .AsNoTracking()
+            .Include(leaveRequest => leaveRequest.Employee)
+            .FirstOrDefaultAsync(leaveRequest => leaveRequest.Id == id);
     } 
 
     public async Task<bool> UpdateStatusAsync(int id, LeaveStatus status)
     {
-        using var connection = _context.Connection();
-        var query = "update leaverequests set status = @Status where id = @Id";
-        var res = await connection.ExecuteAsync(query, new { Id = id, Status = status });
-        return res > 0;
+        var leaveRequest = await _context.LeaveRequests.FirstOrDefaultAsync(x => x.Id == id);
+        if (leaveRequest is null)
+        {
+            return false;
+        }
+
+        leaveRequest.Status = status;
+        await _context.SaveChangesAsync();
+        return true;
     }
 }
