@@ -6,4 +6,5 @@ public class Position
     public string Title { get; set; } = string.Empty;
     public decimal MinSalary { get; set; }
     public decimal MaxSalary { get; set; }
+    public List<Employee> Employees { get; set; } = [];
 }

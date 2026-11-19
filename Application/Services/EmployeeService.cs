@@ -11,6 +11,29 @@ namespace Application.Services;
 public class EmployeeService(IEmployeeRepository employeeRepository) : IEmployeeService
 {
     private readonly IEmployeeRepository _repository = employeeRepository;
+
+    public async Task<ApiResponse<List<EmployeeDto>>> GetEmployeesAsync()
+    {
+        var employees = await _repository.GetEmployeesAsync();
+        var res = employees.Select(employee => new EmployeeDto
+        {
+            Id = employee.Id,
+            FirstName = employee.FirstName,
+            LastName = employee.LastName,
+            Email = employee.Email,
+            Phone = employee.Phone,
+            HireDate = employee.HireDate,
+            Salary = employee.Salary,
+            IsActive = employee.IsActive,
+            DepartmentId = employee.DepartmentId,
+            DepartmentName = employee.Department?.Name ?? string.Empty,
+            PositionId = employee.PositionId,
+            PositionTitle = employee.Position?.Title ?? string.Empty
+        }).ToList();
+
+        return new ApiResponse<List<EmployeeDto>>(HttpStatusCode.OK, "List of employees.", res);
+    }
+
     public async Task<ApiResponse<EmployeeDto>> GetEmployeeAsync(int id)
     {
         var employee = await _repository.GetEmployeeAsync(id);

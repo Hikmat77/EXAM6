@@ -14,19 +14,19 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     {
         modelBuilder.Entity<Employee>()
             .HasOne(employee => employee.Department)
-            .WithMany()
+            .WithMany(department => department.Employees)
             .HasForeignKey(employee => employee.DepartmentId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Employee>()
             .HasOne(employee => employee.Position)
-            .WithMany()
+            .WithMany(position => position.Employees)
             .HasForeignKey(employee => employee.PositionId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<LeaveRequest>()
             .HasOne(leaveRequest => leaveRequest.Employee)
-            .WithMany()
+            .WithMany(employee => employee.LeaveRequests)
             .HasForeignKey(leaveRequest => leaveRequest.EmployeeId)
             .OnDelete(DeleteBehavior.Restrict);
 

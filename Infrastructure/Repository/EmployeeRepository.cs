@@ -9,6 +9,15 @@ public class EmployeeRepository(AppDbContext appDbContext) : IEmployeeRepository
 {
     private readonly AppDbContext _context = appDbContext;
 
+    public async Task<List<Employee>> GetEmployeesAsync()
+    {
+        return await _context.Employees
+            .AsNoTracking()
+            .Include(employee => employee.Department)
+            .Include(employee => employee.Position)
+            .ToListAsync();
+    }
+
     public async Task<Employee?> GetEmployeeAsync(int id)
     {
         return await _context.Employees

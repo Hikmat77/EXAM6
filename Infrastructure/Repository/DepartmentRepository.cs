@@ -31,7 +31,7 @@ public class DepartmentRepository(AppDbContext appDbContext) : IDepartmentReposi
     public async Task<Department> GetDepartmentAsync(int id)
     {
         return await _context.Departments.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id)
-            ?? new Department();
+        ?? new Department();
     }
 
     public async Task<List<Department>> GetDepartmentsAsync()

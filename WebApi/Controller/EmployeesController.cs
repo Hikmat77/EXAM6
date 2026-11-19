@@ -15,6 +15,13 @@ public class EmployeesController(
     private IEmployeeService service = employeeService;
     private ILogger<EmployeesController> _logger = logger;
 
+    [HttpGet]
+    public async Task<ApiResponse<List<EmployeeDto>>> GetEmployees()
+    {
+        _logger.LogInformation("GET api/Employees {date}", DateTime.Now);
+        return await service.GetEmployeesAsync();
+    }
+
     [HttpGet("{id:int}")]
     public async Task<ApiResponse<EmployeeDto>> GetEmployee(int id)
     {

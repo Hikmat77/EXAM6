@@ -14,4 +14,5 @@ public class Employee
     public int PositionId { get; set; }
     public Department? Department { get; set; }
     public Position? Position { get; set; }
+    public List<LeaveRequest> LeaveRequests { get; set; } = [];
 }

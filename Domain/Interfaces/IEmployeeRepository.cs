@@ -4,6 +4,7 @@ namespace Domain.Interfaces;
 
 public interface IEmployeeRepository
 {
+    Task<List<Employee>> GetEmployeesAsync();
     Task<Employee?> GetEmployeeAsync(int id);
     Task<bool> AddEmployeeAsync(Employee employee);
     Task<bool> UpdateEmployeeAsync(Employee employee);
